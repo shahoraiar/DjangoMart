@@ -1,6 +1,7 @@
 from django.shortcuts import render , get_object_or_404
 from category.models import Product , Category
 from django.core.paginator import Paginator
+from django.db.models import Q
 # Create your views here.
 
 def store(request , category_slug=None) : 
@@ -29,3 +30,34 @@ def product_detail(request , category_slug , product_slug) :
     single_product = Product.objects.get(slug = product_slug , category__slug = category_slug)
     
     return render(request , 'store/product-detail.html' , {'context' : single_product})
+
+# def search(request):
+#     query = request.GET.get('query', '')
+#     category_id = request.GET.get('category', '')
+
+#     # Filter products based on the search query and category
+#     products = Product.objects.filter(Q(product_name__icontains=query) | Q(description__icontains=query))
+
+#     if category_id:
+#         products = products.filter(category_id=category_id)
+
+#     context = {'query': query, 'category_id': category_id, 'products': products ,'total_item' : products}
+#     return render(request, 'store/store.html', context)
+
+def search(request):
+    query = request.GET.get('query', '')
+    category_id = request.GET.get('category', '')
+
+    # Filter products based on the search query and category
+    products = Product.objects.filter(Q(product_name__icontains=query) | Q(description__icontains=query))
+
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    # Paginate the search results
+    paginator = Paginator(products, 9)  # Change the number per page if needed
+    page = request.GET.get('page')
+    page_number = paginator.get_page(page)
+
+    context = {'query': query, 'category_id': category_id, 'products': page_number, 'total_item': products}
+    return render(request, 'store/store.html', context)

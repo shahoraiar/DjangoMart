@@ -1,0 +1,30 @@
+<div class="row">
+					{% for p in products %}
+
+					<div class="col-md-4">
+						<figure class="card card-product-grid">
+							<div class="img-wrap">
+
+								<img src="{{p.image.url}}">
+
+							</div> <!-- img-wrap.// -->
+							<figcaption class="info-wrap">
+								<div class="fix-height">
+									<a href="{% url 'product-details' p.category.slug p.slug %}"
+										class="title">{{p.product_name}}</a>
+									<div class="price-wrap mt-2">
+										<span class="price">${{p.price}}</span>
+										<del class="price-old">${{p.price}}</del>
+									</div> <!-- price-wrap.// -->
+								</div>
+								<form action="post">
+									{% csrf_token %}
+
+									<a href="{% url 'add_to_cart' p.id %}" class="btn btn-block btn-primary">Added to
+										cart </a>
+								</form>
+							</figcaption>
+						</figure>
+					</div> <!-- col.// -->
+					{% endfor %}
+				</div> <!-- row end.// -->
