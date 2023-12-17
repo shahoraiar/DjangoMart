@@ -27,7 +27,11 @@ def signin(request) : #login
         if not request.session.session_key:
             request.session.create()
         session_id = request.session.session_key #session id nie aslam
-        cart = Cart.objects.get(cart_id = session_id)
+        try:
+            cart = Cart.objects.get(cart_id=session_id)
+        except Cart.DoesNotExist:
+            cart = None
+        # cart = Cart.objects.get(cart_id = session_id)
         is_cart_item_exists = CartItem.objects.filter(cart = cart).exists()
         if is_cart_item_exists : 
             cart_item = CartItem.objects.filter(cart = cart)

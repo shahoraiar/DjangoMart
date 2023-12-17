@@ -6,10 +6,11 @@ from .ssl import sslcommerz_payment_gateway
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.http import HttpResponseBadRequest
 # Create your views here.
 
 
-@method_decorator(csrf_exempt, name='dispatch') # csrf ke disable kore deoya
+@csrf_exempt
 def success_view(request):
     data = request.POST
     print('data -------', data)
@@ -50,7 +51,6 @@ def success_view(request):
     # Clear cart
     CartItem.objects.filter(user=user).delete()
     return redirect('cart')
-    
 
 
 def order_complete(request) : 
@@ -91,3 +91,4 @@ def place_order(request) :
         # return redirect('order_complete')
     else : 
         return redirect('signin')
+    
