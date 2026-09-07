@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+
+<section class="section-conten padding-y" style="min-height:84vh">
+  <div class="mx-auto" style="max-width: 420px; margin-top:100px;">
+
+    {% if error %}
+    <div class="alert alert-danger mb-3" role="alert">
+      <strong>Verification failed.</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success mb-3" role="alert">{{ success }}</div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title mb-2 text-center">{{ title|default:"Verify OTP" }}</h4>
+        <p class="text-muted text-center small mb-2">
+          OTP sent to <strong>{{ email }}</strong>
+        </p>
+        <p class="text-center mb-4">
+          <span id="otp-timer-label" class="badge badge-primary px-3 py-2" style="font-size:0.95rem;">
+            Time left: <span id="otp-countdown">--:--</span>
+          </span>
+        </p>
+        <p id="otp-expired-msg" class="text-danger text-center small d-none mb-3">
+          OTP expired. Please resend a new OTP.
+        </p>
+
+        <form method="post" id="verify-otp-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="verify">
+          <div class="form-group">
+            <label for="{{ form.otp.id_for_label }}">Enter OTP</label>
+            {{ form.otp }}
+          </div>
+          <div class="form-group mb-2">
+            <button type="submit" id="verify-btn" class="btn btn-primary btn-block">Verify OTP</button>
+          </div>
+        </form>
+
+        <form method="post" class="mt-2" id="resend-otp-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="resend">
+          <button type="submit" id="resend-btn" class="btn btn-outline-secondary btn-block" disabled>
+            Resend OTP
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-center mt-4">
+    {% if purpose == 'register' %}
+      <a href="{% url 'register' %}">Back to Sign up</a>
+    {% else %}
+      <a href="{% url 'forgot_password' %}">Back to Forgot password</a>
+    {% endif %}
+  </p>
+  <br><br>
+</section>
+
+{% include "accounts/_auth_styles.html" %}
+
+<script>
+(function () {
+  var remaining = parseInt("{{ remaining|default:0 }}", 10) || 0;
+  var countdownEl = document.getElementById("otp-countdown");
+  var labelEl = document.getElementById("otp-timer-label");
+  var expiredMsg = document.getElementById("otp-expired-msg");
+  var resendBtn = document.getElementById("resend-btn");
+  var timerId = null;
+
+  function formatTime(totalSeconds) {
+    var m = Math.floor(totalSeconds / 60);
+    var s = totalSeconds % 60;
+    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function setExpiredUI() {
+    countdownEl.textContent = "00:00";
+    labelEl.classList.remove("badge-primary");
+    labelEl.classList.add("badge-danger");
+    labelEl.innerHTML = "OTP expired";
+    expiredMsg.classList.remove("d-none");
+    resendBtn.disabled = false;
+  }
+
+  function tick() {
+    if (remaining <= 0) {
+      clearInterval(timerId);
+      setExpiredUI();
+      return;
+    }
+    countdownEl.textContent = formatTime(remaining);
+    remaining -= 1;
+  }
+
+  if (remaining > 0) {
+    resendBtn.disabled = true;
+    tick();
+    timerId = setInterval(tick, 1000);
+  } else {
+    setExpiredUI();
+  }
+})();
+</script>
+
+{% endblock navbar %}

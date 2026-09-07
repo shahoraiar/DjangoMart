@@ -9,9 +9,16 @@
 <!-- ============================ COMPONENT LOGIN   ================================= -->
   <div class="mx-auto" style="max-width: 380px; margin-top:100px;">
 
+    {% if success %}
+    <div class="alert alert-success mb-3" role="alert">{{ success }}</div>
+    {% endif %}
+
     {% if error %}
     <div class="alert alert-danger mb-3" role="alert">
       <strong>Sign in failed.</strong> {{ error }}
+      {% if 'not verified' in error|lower %}
+        <div class="mt-2"><a href="{% url 'verify_otp' %}">Verify OTP</a></div>
+      {% endif %}
     </div>
     {% endif %}
 
@@ -21,14 +28,16 @@
         <form method="post">
           {% csrf_token %}
           <div class="form-group">
-            <input type="text" class="form-control auth-input" placeholder="User Name" name="username" value="{{ username }}" required>
+            <label for="id_username">User Name</label>
+            <input type="text" id="id_username" class="form-control auth-input" placeholder="User Name" name="username" value="{{ username }}" required>
           </div>
           <div class="form-group">
-            <input type="password" class="form-control auth-input" placeholder="Password" name="password" required>
+            <label for="id_password">Password</label>
+            <input type="password" id="id_password" class="form-control auth-input" placeholder="Password" name="password" required>
           </div>
 
           <div class="form-group">
-            <a href="#" class="float-right">Forgot password?</a>
+            <a href="{% url 'forgot_password' %}" class="float-right">Forgot password?</a>
           </div>
           <div class="form-group mb-0">
             <button type="submit" class="btn btn-primary btn-block">Login</button>
@@ -46,30 +55,6 @@
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
-<style>
-  .auth-input {
-    height: 44px;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    padding: 0.55rem 0.9rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .auth-input:focus {
-    border-color: #3167eb;
-    box-shadow: 0 0 0 0.15rem rgba(49, 103, 235, 0.2);
-    outline: 0;
-  }
-
-  .card {
-    border-radius: 12px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-  }
-
-  .card-body {
-    padding: 1.75rem;
-  }
-</style>
+{% include "accounts/_auth_styles.html" %}
 
 {% endblock navbar %}

@@ -5,8 +5,11 @@
 
 
 <section class="section-content padding-y">
-  <!-- ============================ COMPONENT REGISTER   ================================= -->
   <div class="mx-auto" style="max-width: 520px; margin-top: 40px">
+
+    {% if send_error %}
+    <div class="alert alert-danger mb-3" role="alert">{{ send_error }}</div>
+    {% endif %}
 
     {% if form.errors %}
     <div class="alert alert-danger mb-3" role="alert">
@@ -28,6 +31,7 @@
       <article class="card-body">
         <header class="mb-4 text-center">
           <h4 class="card-title mb-0">Sign up</h4>
+          <p class="text-muted small mb-0 mt-2">We will send a 5-minute OTP to your email</p>
         </header>
         <form method="POST" novalidate>
           {% csrf_token %}
@@ -66,7 +70,7 @@
 
           <div class="form-group mb-0">
             <button type="submit" class="btn btn-primary btn-block">
-              Register
+              Register &amp; Send OTP
             </button>
           </div>
         </form>
@@ -76,46 +80,8 @@
 
   <p class="text-center mt-4">Have an account? <a href="{% url 'signin' %}">Log In</a></p>
   <br /><br />
-  <!-- ============================ COMPONENT REGISTER  END.// ================================= -->
 </section>
 
-<style>
-  .auth-input {
-    height: 44px;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    padding: 0.55rem 0.9rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .auth-input:focus {
-    border-color: #3167eb;
-    box-shadow: 0 0 0 0.15rem rgba(49, 103, 235, 0.2);
-    outline: 0;
-  }
-
-  .card {
-    border-radius: 12px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-  }
-
-  .card-body {
-    padding: 1.75rem;
-  }
-
-  .form-group label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #343a40;
-    margin-bottom: 0.35rem;
-  }
-
-  .form-row > .col,
-  .form-row > [class*="col-"] {
-    padding-right: 8px;
-    padding-left: 8px;
-  }
-</style>
+{% include "accounts/_auth_styles.html" %}
 
 {% endblock navbar %}
