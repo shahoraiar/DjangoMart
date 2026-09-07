@@ -18,13 +18,15 @@ def profile(request) :
     return render(request , 'accounts/dashboard.html')
 
 def signin(request):
+    error = None
+    username = ''
+
     if request.method == 'POST':
-        user_name = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(username=user_name, password=password)
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(username=username, password=password)
 
         if user is not None:
-            # Login successful
             if not request.session.session_key:
                 request.session.create()
             session_id = request.session.session_key
@@ -44,11 +46,13 @@ def signin(request):
 
             login(request, user)
             return redirect('cart')
-        else:
-            # Login failed, redirect to 'register'
-            return redirect('register')  # Make sure to replace 'register' with your actual URL name
 
-    return render(request, 'accounts/signin.html')
+        error = 'Invalid username or password. Please try again.'
+
+    return render(request, 'accounts/signin.html', {
+        'error': error,
+        'username': username,
+    })
 
 def user_logout(request) : 
     logout(request)

@@ -2,75 +2,120 @@
 
 
 {% block navbar %}
-  
+
 
 <section class="section-content padding-y">
   <!-- ============================ COMPONENT REGISTER   ================================= -->
-  <div class="card mx-auto" style="max-width: 520px; margin-top: 40px">
-    <article class="card-body">
-      <header class="mb-4"><h4 class="card-title">Sign up</h4></header>
-      <form method="POST">
-        {% csrf_token %}
-        <div class="form-row">
-          <div class="col form-group">
-            <label>User Name</label>
-            <br/>
-            {{form.username}}
-          </div>
-        </div>
+  <div class="mx-auto" style="max-width: 520px; margin-top: 40px">
 
-        <div class="form-row">
-          <div class="col form-group">
-            <label>First name</label>
-            <br/>
-            {{ form.first_name }}
-          </div>
-          <!-- form-group end.// -->
-          <div class="col form-group">
-            <label>Last name</label>
-            <br/>
-            {{form.last_name}}
-          </div>
-          <!-- form-group end.// -->
-        </div>
-        <!-- form-row end.// -->
+    {% if form.errors %}
+    <div class="alert alert-danger mb-3" role="alert">
+      <strong>Registration failed.</strong> Please fix the issues below:
+      <ul class="mb-0 mt-2 pl-3">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-        <div class="form-group">
-          <label>Email</label>
-          <br/>
-            {{form.email}}
-        </div>
-        <!-- form-group end.// -->
+    <div class="card">
+      <article class="card-body">
+        <header class="mb-4 text-center">
+          <h4 class="card-title mb-0">Sign up</h4>
+        </header>
+        <form method="POST" novalidate>
+          {% csrf_token %}
 
-        <div class="form-row">
-          <div class="form-group col-md-6">
-            <label>Create password</label>
-            <br/>
-            {{form.password1}}
+          <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">User Name</label>
+            {{ form.username }}
           </div>
-          <!-- form-group end.// -->
-          <div class="form-group col-md-6">
-            <label>Repeat password</label>
-            <br/>
-            {{form.password2}}
-          </div>
-          <!-- form-group end.// -->
-        </div>
 
-        <div class="form-group">
-          <button type="submit" class="btn btn-primary btn-block">
-            Register
-          </button>
-        </div>
-        <!-- form-group// -->
-      </form>
-    </article>
-    <!-- card-body.// -->
+          <div class="form-row">
+            <div class="col form-group">
+              <label for="{{ form.first_name.id_for_label }}">First name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col form-group">
+              <label for="{{ form.last_name.id_for_label }}">Last name</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="{{ form.password1.id_for_label }}">Create password</label>
+              {{ form.password1 }}
+            </div>
+            <div class="form-group col-md-6">
+              <label for="{{ form.password2.id_for_label }}">Repeat password</label>
+              {{ form.password2 }}
+            </div>
+          </div>
+
+          <div class="form-group mb-0">
+            <button type="submit" class="btn btn-primary btn-block">
+              Register
+            </button>
+          </div>
+        </form>
+      </article>
+    </div>
   </div>
-  <!-- card .// -->
+
   <p class="text-center mt-4">Have an account? <a href="{% url 'signin' %}">Log In</a></p>
   <br /><br />
   <!-- ============================ COMPONENT REGISTER  END.// ================================= -->
 </section>
 
-    {% endblock navbar %}
+<style>
+  .auth-input {
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.55rem 0.9rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .auth-input:focus {
+    border-color: #3167eb;
+    box-shadow: 0 0 0 0.15rem rgba(49, 103, 235, 0.2);
+    outline: 0;
+  }
+
+  .card {
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  }
+
+  .card-body {
+    padding: 1.75rem;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #343a40;
+    margin-bottom: 0.35rem;
+  }
+
+  .form-row > .col,
+  .form-row > [class*="col-"] {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+</style>
+
+{% endblock navbar %}

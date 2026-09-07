@@ -1,45 +1,75 @@
 {% extends "base.html" %}
 
 {% block navbar %}
-  
 
 
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-conten padding-y" style="min-height:84vh">
 
 <!-- ============================ COMPONENT LOGIN   ================================= -->
-	<div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
-      <div class="card-body">
-      <h4 class="card-title mb-4">Sign in</h4>
-      <form method="post">
-        {% csrf_token %}
-          <div class="form-group">
-			 <input type="text" class="form-control" placeholder="User Name" name="username">
-          </div> <!-- form-group// -->
-          <div class="form-group">
-			<input type="password" class="form-control" placeholder="Password" name="password">
-          </div> <!-- form-group// -->
-          
-          <div class="form-group">
-          	<a href="#" class="float-right">Forgot password?</a> 
-           
-          </div> <!-- form-group form-check .// -->
-          <div class="form-group">
-              <button type="submit" class="btn btn-primary btn-block"> Login  </button>
-          </div> <!-- form-group// -->    
-      </form>
-      </div> <!-- card-body.// -->
-    </div> <!-- card .// -->
+  <div class="mx-auto" style="max-width: 380px; margin-top:100px;">
 
-     <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
-     <br><br>
+    {% if error %}
+    <div class="alert alert-danger mb-3" role="alert">
+      <strong>Sign in failed.</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title mb-4 text-center">Sign in</h4>
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <input type="text" class="form-control auth-input" placeholder="User Name" name="username" value="{{ username }}" required>
+          </div>
+          <div class="form-group">
+            <input type="password" class="form-control auth-input" placeholder="Password" name="password" required>
+          </div>
+
+          <div class="form-group">
+            <a href="#" class="float-right">Forgot password?</a>
+          </div>
+          <div class="form-group mb-0">
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
+  <br><br>
 <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
 
 
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
+<style>
+  .auth-input {
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.55rem 0.9rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
 
+  .auth-input:focus {
+    border-color: #3167eb;
+    box-shadow: 0 0 0 0.15rem rgba(49, 103, 235, 0.2);
+    outline: 0;
+  }
 
+  .card {
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  }
+
+  .card-body {
+    padding: 1.75rem;
+  }
+</style>
 
 {% endblock navbar %}
