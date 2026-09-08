@@ -237,7 +237,22 @@
 							<p class="text-center mb-3">
 								<img src="{% static './images/misc/payments.png' %}" height="26">
 							</p>
-							<!-- <a href="{% url 'place_order' %}" class="btn btn-primary btn-block"> Place Order </a> -->
+							<div class="alert alert-info mb-3" role="alert" style="font-size: 0.85rem;">
+								<strong>SSLCommerz Sandbox (test only)</strong>
+								<p class="mb-2 mt-1">After Place Order you will open the SSLCommerz payment page. Use these test details — no real money is charged.</p>
+								<p class="mb-1"><strong>Cards</strong></p>
+								<ul class="pl-3 mb-2">
+									<li>Visa: <code>4111111111111111</code></li>
+									<li>Mastercard: <code>5111111111111111</code></li>
+									<li>Amex: <code>371111111111111</code></li>
+									<li>Expiry: <code>12/26</code> &nbsp; CVV: <code>111</code></li>
+								</ul>
+								<p class="mb-1"><strong>Mobile banking</strong> (bKash / Nagad / Rocket / others)</p>
+								<ul class="pl-3 mb-0">
+									<li>Any mobile: <code>01XXXXXXXXX</code> (e.g. 01712345678)</li>
+									<li>PIN / OTP: <code>111111</code> or <code>123456</code></li>
+								</ul>
+							</div>
 							<button type="submit" class="btn btn-primary btn-block" > Place Order </button>
 </form>
 						</div> <!-- card-body.// -->
