@@ -31,6 +31,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,7 +44,7 @@ INSTALLED_APPS = [
     'cart',
     'category',
     'orders',
-    'store' ,
+    'store',
 ]
 
 MIDDLEWARE = [
@@ -143,5 +146,12 @@ OTP_EXPIRY_MINUTES = 5
 from django.contrib.messages import constants as message_constants
 MESSAGE_TAGS = {
     message_constants.ERROR: 'danger',
+}
+
+UNFOLD = {
+    'SITE_TITLE': 'DjangoMart Admin',
+    'SITE_HEADER': 'DjangoMart',
+    'SITE_SUBHEADER': 'Administration',
+    'SITE_SYMBOL': 'storefront',
 }
 

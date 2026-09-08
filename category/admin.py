@@ -1,18 +1,22 @@
 from django.contrib import admin
-from . models import Category , Product
-# Register your models here.
+from unfold.admin import ModelAdmin
 
-# admin.site.register(Category)
+from .models import Category, Product
 
-class CategoryAdmin(admin.ModelAdmin) : 
-    prepopulated_fields = {'slug' : ('category_name' ,)}
-    list_display = ('category_name' , 'slug')
-    
-class ProductAdmin(admin.ModelAdmin) : 
-    prepopulated_fields = {'slug' : ('product_name' ,)}
-    list_display = ('product_name','category' , 'price' , 'stock' , 'is_available'
-                    , 'created_date' , 'modified_date')
-    
-    
-admin.site.register(Category , CategoryAdmin)
-admin.site.register(Product , ProductAdmin)
+
+@admin.register(Category)
+class CategoryAdmin(ModelAdmin):
+    prepopulated_fields = {'slug': ('category_name',)}
+    list_display = ('category_name', 'slug')
+    search_fields = ('category_name',)
+
+
+@admin.register(Product)
+class ProductAdmin(ModelAdmin):
+    prepopulated_fields = {'slug': ('product_name',)}
+    list_display = (
+        'product_name', 'category', 'price', 'stock',
+        'is_available', 'created_date', 'modified_date',
+    )
+    list_filter = ('is_available', 'category')
+    search_fields = ('product_name',)

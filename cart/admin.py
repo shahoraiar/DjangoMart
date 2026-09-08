@@ -1,6 +1,17 @@
 from django.contrib import admin
-from . import models
-# Register your models here.
+from unfold.admin import ModelAdmin
 
-admin.site.register(models.Cart)
-admin.site.register(models.CartItem)
+from .models import Cart, CartItem
+
+
+@admin.register(Cart)
+class CartAdmin(ModelAdmin):
+    list_display = ('cart_id', 'date_added')
+    search_fields = ('cart_id',)
+
+
+@admin.register(CartItem)
+class CartItemAdmin(ModelAdmin):
+    list_display = ('product', 'cart', 'user', 'quantity', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('product__product_name',)
