@@ -1,0 +1,10 @@
+<ul class="list-group">
+  <a class="list-group-item {% if active_tab == 'orders' %}active{% endif %}" href="{% url 'profile' %}">My order history</a>
+  <a class="list-group-item {% if active_tab == 'transactions' %}active{% endif %}" href="{% url 'transactions' %}">Transactions</a>
+  <a class="list-group-item {% if active_tab == 'settings' %}active{% endif %}" href="{% url 'account_settings' %}">Settings</a>
+  <a class="list-group-item {% if active_tab == 'received' %}active{% endif %}" href="{% url 'received_orders' %}">Received orders</a>
+</ul>
+<br>
+<a class="btn btn-light btn-block" href="{% url 'logout' %}">
+  <i class="fa fa-power-off"></i> <span class="text">Log out</span>
+</a>

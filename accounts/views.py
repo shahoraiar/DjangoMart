@@ -1,10 +1,15 @@
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db.models import Q, Prefetch
+from django.shortcuts import render, redirect, get_object_or_404
 
-from .forms import RegisterForm, OTPForm, ForgotPasswordForm, ResetPasswordForm
+from orders.models import Order, OrderProduct, Payment
+from .forms import (
+    RegisterForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileSettingsForm,
+)
 from .models import EmailOTP
 from .utils import (
     create_and_send_otp,
@@ -23,7 +28,6 @@ def register(request):
     error = None
 
     if request.method == 'POST':
-        # Allow restarting unfinished (inactive) signups
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip().lower()
         if username or email:
@@ -113,14 +117,12 @@ def verify_otp(request):
 
                         user.is_active = True
                         user.save(update_fields=['is_active'])
-                        # Registration only: guest cart → new auth user
                         merge_session_cart(request, user)
                         login(request, user)
                         for key in ('otp_email', 'otp_purpose', 'pending_user_id'):
                             request.session.pop(key, None)
                         return redirect('cart')
 
-                    # Password reset — mark verified then go to set password
                     request.session['otp_verified'] = True
                     return redirect('reset_password')
 
@@ -212,7 +214,89 @@ def reset_password(request):
 
 
 def profile(request):
-    return render(request, 'accounts/dashboard.html')
+    if not request.user.is_authenticated:
+        return redirect('signin')
+
+    orders = (
+        Order.objects.filter(user=request.user, is_ordered=True)
+        .select_related('payment')
+        .prefetch_related(
+            Prefetch(
+                'order_products',
+                queryset=OrderProduct.objects.select_related('product'),
+            )
+        )
+        .order_by('-created_at')
+    )
+    return render(request, 'accounts/dashboard.html', {
+        'orders': orders,
+        'active_tab': 'orders',
+    })
+
+
+@login_required(login_url='signin')
+def transactions(request):
+    payments = (
+        Payment.objects.filter(user=request.user)
+        .order_by('-created_at')
+    )
+    return render(request, 'accounts/transactions.html', {
+        'payments': payments,
+        'active_tab': 'transactions',
+    })
+
+
+@login_required(login_url='signin')
+def account_settings(request):
+    form = ProfileSettingsForm(instance=request.user)
+    if request.method == 'POST':
+        form = ProfileSettingsForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile settings updated.')
+            return redirect('account_settings')
+    return render(request, 'accounts/settings.html', {
+        'form': form,
+        'active_tab': 'settings',
+    })
+
+
+@login_required(login_url='signin')
+def received_orders(request):
+    if request.user.is_staff:
+        orders = (
+            Order.objects.filter(is_ordered=True)
+            .select_related('user', 'payment')
+            .prefetch_related('order_products__product')
+            .order_by('-created_at')
+        )
+    else:
+        orders = (
+            Order.objects.filter(user=request.user, is_ordered=True)
+            .exclude(status='cancelled')
+            .select_related('payment')
+            .prefetch_related('order_products__product')
+            .order_by('-created_at')
+        )
+    return render(request, 'accounts/received_orders.html', {
+        'orders': orders,
+        'active_tab': 'received',
+    })
+
+
+@login_required(login_url='signin')
+def order_detail(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_related('payment').prefetch_related('order_products__product'),
+        id=order_id,
+        is_ordered=True,
+    )
+    if order.user_id != request.user.id and not request.user.is_staff:
+        return redirect('profile')
+    return render(request, 'accounts/order_detail.html', {
+        'order': order,
+        'active_tab': 'orders',
+    })
 
 
 def signin(request):
@@ -226,13 +310,11 @@ def signin(request):
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            # login() changes session key — keep guest cart linked for after logout
             old_session_key = request.session.session_key
             login(request, user)
             reattach_guest_cart(old_session_key, request.session.session_key)
             return redirect('cart')
 
-        # Inactive account (OTP not verified yet)
         inactive = User.objects.filter(username=username, is_active=False).first()
         if inactive and inactive.check_password(password):
             error = 'Account not verified. Complete OTP verification or register again.'
@@ -250,7 +332,6 @@ def signin(request):
 
 
 def user_logout(request):
-    # logout() flushes session — reattach guest cart to the new session key
     old_session_key = request.session.session_key
     logout(request)
     if not request.session.session_key:

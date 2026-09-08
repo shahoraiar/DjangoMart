@@ -139,3 +139,9 @@ EMAIL_HOST_PASSWORD = 'ftry fgud komj vanu'.replace(' ', '')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 OTP_EXPIRY_MINUTES = 5
+
+from django.contrib.messages import constants as message_constants
+MESSAGE_TAGS = {
+    message_constants.ERROR: 'danger',
+}
+

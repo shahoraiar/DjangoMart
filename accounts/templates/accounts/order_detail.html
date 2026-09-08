@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navbar %}
+<section class="section-conten padding-y bg">
+  <div class="container">
+    <div class="row">
+      <aside class="col-md-3">
+        {% include "accounts/_dashboard_sidebar.html" %}
+      </aside>
+      <main class="col-md-9">
+        <article class="card">
+          <header class="card-header">
+            <strong class="d-inline-block mr-3">Order ID: {{ order.order_no }}</strong>
+            <span>Order Date: {{ order.created_at|date:"d F Y" }}</span>
+            <a href="{% url 'profile' %}" class="float-right">← Back</a>
+          </header>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-8">
+                <h6 class="text-muted">Delivery to</h6>
+                <p>
+                  {{ order.full_name }} <br>
+                  Phone {{ order.phone }} Email: {{ order.email }} <br>
+                  Location: {{ order.full_address }}
+                </p>
+              </div>
+              <div class="col-md-4">
+                <h6 class="text-muted">Payment</h6>
+                <p>
+                  Method: {{ order.payment.payment_method|default:"—" }} <br>
+                  Tran ID: {{ order.payment.payment_id|default:"—" }} <br>
+                  Status: {{ order.payment.status|default:order.status }} <br>
+                  Subtotal: ${{ order.subtotal|floatformat:2 }} <br>
+                  Tax: ${{ order.tax|floatformat:2 }} <br>
+                  <strong>Total: ${{ order.order_total|floatformat:2 }}</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              {% for item in order.order_products.all %}
+              <tr>
+                <td width="65">
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" class="img-xs border" alt="">
+                  {% endif %}
+                </td>
+                <td>
+                  <p class="title mb-0">{{ item.product.product_name }}</p>
+                  <var class="price text-muted">USD {{ item.product.price }}</var>
+                </td>
+                <td>Qty<br>{{ item.quantity }}</td>
+                <td class="text-right"><strong>${{ item.line_total|floatformat:2 }}</strong></td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </article>
+      </main>
+    </div>
+  </div>
+</section>
+{% endblock navbar %}

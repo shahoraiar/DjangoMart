@@ -71,7 +71,6 @@ def _otp_email_html(code, purpose, minutes=5):
 
 
 def create_and_send_otp(email, purpose):
-    """Invalidate old OTPs, create a new one, and email it. Expires in 5 minutes."""
     EmailOTP.objects.filter(
         email__iexact=email,
         purpose=purpose,
@@ -127,7 +126,6 @@ def seconds_until_otp_expiry(otp_obj, minutes=5):
 
 
 def merge_session_cart(request, user):
-    """Move guest (session) cart items to the newly registered user."""
     from cart.models import Cart, CartItem
 
     if not request.session.session_key:
@@ -155,10 +153,6 @@ def merge_session_cart(request, user):
 
 
 def reattach_guest_cart(old_session_key, new_session_key):
-    """
-    Keep guest cart after login/logout session key changes.
-    login() cycles the session key; logout() flushes it.
-    """
     from cart.models import Cart, CartItem
 
     if not old_session_key or not new_session_key or old_session_key == new_session_key:
@@ -175,7 +169,6 @@ def reattach_guest_cart(old_session_key, new_session_key):
         old_cart.save(update_fields=['cart_id'])
         return
 
-    # Both keys have carts — move items into the new session cart
     for item in CartItem.objects.filter(cart=old_cart):
         existing = CartItem.objects.filter(cart=new_cart, product=item.product).first()
         if existing:

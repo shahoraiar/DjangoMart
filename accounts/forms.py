@@ -62,3 +62,21 @@ class ResetPasswordForm(SetPasswordForm):
             field.widget.attrs.update({'class': 'form-control auth-input'})
         self.fields['new_password1'].widget.attrs['placeholder'] = 'New password'
         self.fields['new_password2'].widget.attrs['placeholder'] = 'Confirm new password'
+
+
+class ProfileSettingsForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control auth-input'})
+
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        qs = User.objects.filter(username=username).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('This username is already taken.')
+        return username

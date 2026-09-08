@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navbar %}
+<section class="section-conten padding-y bg">
+  <div class="container">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-3">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <aside class="col-md-3">
+        {% include "accounts/_dashboard_sidebar.html" %}
+      </aside>
+      <main class="col-md-9">
+        <article class="card">
+          <header class="card-header"><strong>Settings</strong></header>
+          <div class="card-body">
+            {% if form.errors %}
+            <div class="alert alert-danger">
+              <ul class="mb-0 pl-3">
+                {% for field in form %}
+                  {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+            <form method="post">
+              {% csrf_token %}
+              <div class="form-group">
+                <label>Username</label>
+                {{ form.username }}
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>First name</label>
+                  {{ form.first_name }}
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Last name</label>
+                  {{ form.last_name }}
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control auth-input" value="{{ request.user.email }}" readonly disabled>
+                <small class="form-text text-muted">Email cannot be changed.</small>
+              </div>
+              <button type="submit" class="btn btn-primary">Save changes</button>
+            </form>
+          </div>
+        </article>
+      </main>
+    </div>
+  </div>
+</section>
+
+{% include "accounts/_auth_styles.html" %}
+{% endblock navbar %}

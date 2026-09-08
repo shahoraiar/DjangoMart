@@ -1,46 +1,72 @@
 import string
 import random
-from django.contrib.auth.decorators import login_required  
+
 from sslcommerz_lib import SSLCOMMERZ
+
 from .models import PaymentGateWaySettings
+
 
 def unique_transaction_id_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
-@login_required 
-def sslcommerz_payment_gateway(request, id, user_id, grand_total):
-    gateway_auth_details = PaymentGateWaySettings.objects.all().first()
-    
-    settings = {'store_id': gateway_auth_details.store_id,
-                'store_pass': gateway_auth_details.store_pass, 'issandbox': True}
-    print("heyyyyyyyy ", settings)
-    sslcommez = SSLCOMMERZ(settings)
-    post_body = {}
-    post_body['total_amount'] = grand_total
-    post_body['currency'] = "BDT"
-    post_body['tran_id'] = unique_transaction_id_generator()
-    post_body['success_url'] = 'http://127.0.0.1:8000/order/success/'
-    post_body['fail_url'] = 'http://127.0.0.1:8000/orders/payment/faild/'
-    post_body['cancel_url'] = 'http://127.0.0.1:8000/'
-    post_body['emi_option'] = 0
-    post_body['cus_email'] = 'request.user.email'  # Retrieve email from the current user session
-    post_body['cus_phone'] = 'request.user.phone'  # Retrieve phone from the current user session
-    post_body['cus_add1'] = 'request.user.address'  # Retrieve address from the current user session
-    post_body['cus_city'] = 'request.user.city'  # Retrieve city from the current user session
-    post_body['cus_country'] = 'Bangladesh'
-    post_body['shipping_method'] = "NO"
-    post_body['multi_card_name'] = ""
-    post_body['num_of_item'] = 1
-    post_body['product_name'] = "Test"
-    post_body['product_category'] = "Test Category"
-    post_body['product_profile'] = "general"
 
-    # OPTIONAL PARAMETERS
-    post_body['value_a'] = id
-    post_body['value_b'] = user_id
-    post_body['value_c'] = 'email'
+def sslcommerz_payment_gateway(request, order_id, user_id, grand_total, order=None):
+    gateway_auth_details = PaymentGateWaySettings.objects.all().first()
+    if not gateway_auth_details:
+        raise RuntimeError('Payment gateway settings not configured.')
+
+    settings = {
+        'store_id': gateway_auth_details.store_id,
+        'store_pass': gateway_auth_details.store_pass,
+        'issandbox': True,
+    }
+    sslcommez = SSLCOMMERZ(settings)
+
+    email = getattr(order, 'email', None) or getattr(request.user, 'email', '') or 'customer@example.com'
+    phone = getattr(order, 'phone', None) or '01700000000'
+    address = getattr(order, 'address_line1', None) or 'N/A'
+    city = getattr(order, 'city', None) or 'Dhaka'
+
+    post_body = {
+        'total_amount': grand_total,
+        'currency': 'BDT',
+        'tran_id': unique_transaction_id_generator(),
+        'success_url': 'http://127.0.0.1:8000/order/success/',
+        'fail_url': 'http://127.0.0.1:8000/order/place_order/',
+        'cancel_url': 'http://127.0.0.1:8000/',
+        'emi_option': 0,
+        'cus_name': f'{getattr(order, "first_name", "")} {getattr(order, "last_name", "")}'.strip() or request.user.username,
+        'cus_email': email,
+        'cus_phone': phone,
+        'cus_add1': address,
+        'cus_city': city,
+        'cus_country': getattr(order, 'country', None) or 'Bangladesh',
+        'shipping_method': 'NO',
+        'multi_card_name': '',
+        'num_of_item': 1,
+        'product_name': 'DjangoMart Order',
+        'product_category': 'General',
+        'product_profile': 'general',
+        'value_a': str(order_id),
+        'value_b': str(user_id),
+        'value_c': email,
+    }
 
     response = sslcommez.createSession(post_body)
-    print(response)
-    # return JsonResponse(response)
-    return 'https://sandbox.sslcommerz.com/gwprocess/v4/gw.php?Q=pay&SESSIONKEY=' + response["sessionkey"]
+    # print('sslcommerz response:', response)
+
+    if not response or response.get('status') != 'SUCCESS':
+        reason = (response or {}).get('failedreason') or 'Unknown SSLCommerz error'
+        raise RuntimeError(reason)
+
+    payment_url = response.get('GatewayPageURL') or response.get('redirectGatewayURL')
+    if not payment_url and response.get('sessionkey'):
+        payment_url = (
+            'https://sandbox.sslcommerz.com/gwprocess/v4/gw.php'
+            f'?Q=pay&SESSIONKEY={response["sessionkey"]}'
+        )
+
+    if not payment_url:
+        raise RuntimeError('Payment redirect URL missing from SSLCommerz response.')
+
+    return payment_url
