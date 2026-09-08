@@ -5,6 +5,7 @@ Django==6.1.1
 django-unfold==0.105.0
 idna==3.19
 pillow==12.3.0
+python-dotenv==1.2.3
 requests==2.34.2
 sqlparse==0.6.0
 sslcommerz-lib==1.0
