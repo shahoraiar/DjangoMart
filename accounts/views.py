@@ -4,26 +4,18 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect
 
-from cart.models import Cart, CartItem
 from .forms import RegisterForm, OTPForm, ForgotPasswordForm, ResetPasswordForm
 from .models import EmailOTP
-from .utils import create_and_send_otp, get_latest_otp, seconds_until_otp_expiry
+from .utils import (
+    create_and_send_otp,
+    get_latest_otp,
+    seconds_until_otp_expiry,
+    merge_session_cart,
+    reattach_guest_cart,
+)
 
 
 OTP_MINUTES = getattr(settings, 'OTP_EXPIRY_MINUTES', 5)
-
-
-def _merge_session_cart(request, user):
-    if not request.session.session_key:
-        request.session.create()
-    session_id = request.session.session_key
-    try:
-        cart = Cart.objects.get(cart_id=session_id)
-    except Cart.DoesNotExist:
-        return
-    for item in CartItem.objects.filter(cart=cart):
-        item.user = user
-        item.save()
 
 
 def register(request):
@@ -121,11 +113,12 @@ def verify_otp(request):
 
                         user.is_active = True
                         user.save(update_fields=['is_active'])
-                        _merge_session_cart(request, user)
+                        # Registration only: guest cart → new auth user
+                        merge_session_cart(request, user)
                         login(request, user)
                         for key in ('otp_email', 'otp_purpose', 'pending_user_id'):
                             request.session.pop(key, None)
-                        return redirect('profile')
+                        return redirect('cart')
 
                     # Password reset — mark verified then go to set password
                     request.session['otp_verified'] = True
@@ -233,8 +226,10 @@ def signin(request):
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            _merge_session_cart(request, user)
+            # login() changes session key — keep guest cart linked for after logout
+            old_session_key = request.session.session_key
             login(request, user)
+            reattach_guest_cart(old_session_key, request.session.session_key)
             return redirect('cart')
 
         # Inactive account (OTP not verified yet)
@@ -255,5 +250,10 @@ def signin(request):
 
 
 def user_logout(request):
+    # logout() flushes session — reattach guest cart to the new session key
+    old_session_key = request.session.session_key
     logout(request)
+    if not request.session.session_key:
+        request.session.create()
+    reattach_guest_cart(old_session_key, request.session.session_key)
     return redirect('signin')

@@ -53,6 +53,8 @@ def add_to_cart(request , product_id) :
             item.save()
     else : 
         # print('nai')
+        if not request.session.session_key:
+            request.session.create()
         session_id = request.session.session_key
         # print('session : ',cart)
         cart_id = Cart.objects.filter(cart_id = session_id).exists()

@@ -124,3 +124,65 @@ def seconds_until_otp_expiry(otp_obj, minutes=5):
     expires_at = otp_obj.created_at + timedelta(minutes=minutes)
     remaining = (expires_at - timezone.now()).total_seconds()
     return max(0, int(remaining))
+
+
+def merge_session_cart(request, user):
+    """Move guest (session) cart items to the newly registered user."""
+    from cart.models import Cart, CartItem
+
+    if not request.session.session_key:
+        return
+
+    session_id = request.session.session_key
+    try:
+        guest_cart = Cart.objects.get(cart_id=session_id)
+    except Cart.DoesNotExist:
+        return
+
+    for item in CartItem.objects.filter(cart=guest_cart):
+        existing = CartItem.objects.filter(user=user, product=item.product).first()
+        if existing:
+            existing.quantity += item.quantity
+            existing.save(update_fields=['quantity'])
+            item.delete()
+        else:
+            item.user = user
+            item.cart = None
+            item.save(update_fields=['user', 'cart'])
+
+    CartItem.objects.filter(cart=guest_cart).delete()
+    guest_cart.delete()
+
+
+def reattach_guest_cart(old_session_key, new_session_key):
+    """
+    Keep guest cart after login/logout session key changes.
+    login() cycles the session key; logout() flushes it.
+    """
+    from cart.models import Cart, CartItem
+
+    if not old_session_key or not new_session_key or old_session_key == new_session_key:
+        return
+
+    try:
+        old_cart = Cart.objects.get(cart_id=old_session_key)
+    except Cart.DoesNotExist:
+        return
+
+    new_cart = Cart.objects.filter(cart_id=new_session_key).first()
+    if not new_cart:
+        old_cart.cart_id = new_session_key
+        old_cart.save(update_fields=['cart_id'])
+        return
+
+    # Both keys have carts — move items into the new session cart
+    for item in CartItem.objects.filter(cart=old_cart):
+        existing = CartItem.objects.filter(cart=new_cart, product=item.product).first()
+        if existing:
+            existing.quantity += item.quantity
+            existing.save(update_fields=['quantity'])
+            item.delete()
+        else:
+            item.cart = new_cart
+            item.save(update_fields=['cart'])
+    old_cart.delete()

@@ -33,7 +33,7 @@
           <h4 class="card-title mb-0">Sign up</h4>
           <p class="text-muted small mb-0 mt-2">We will send a 5-minute OTP to your email</p>
         </header>
-        <form method="POST" novalidate>
+        <form method="POST" novalidate id="register-form">
           {% csrf_token %}
 
           <div class="form-group">
@@ -69,7 +69,7 @@
           </div>
 
           <div class="form-group mb-0">
-            <button type="submit" class="btn btn-primary btn-block">
+            <button type="submit" id="register-submit-btn" class="btn btn-primary btn-block">
               Register &amp; Send OTP
             </button>
           </div>
@@ -83,5 +83,6 @@
 </section>
 
 {% include "accounts/_auth_styles.html" %}
+{% include "accounts/_otp_loader.html" with form_id="register-form" button_id="register-submit-btn" %}
 
 {% endblock navbar %}

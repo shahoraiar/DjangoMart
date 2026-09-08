@@ -1,0 +1,59 @@
+<div id="otp-loader" class="otp-loader d-none" aria-live="polite" aria-busy="true">
+  <div class="otp-loader-box">
+    <div class="otp-spinner"></div>
+    <p class="mb-0 mt-3">Sending OTP...</p>
+  </div>
+</div>
+
+<style>
+  .otp-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .otp-loader.d-none {
+    display: none !important;
+  }
+
+  .otp-loader-box {
+    text-align: center;
+    color: #343a40;
+    font-weight: 600;
+  }
+
+  .otp-spinner {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto;
+    border: 3px solid #dbe4ff;
+    border-top-color: #3167eb;
+    border-radius: 50%;
+    animation: otp-spin 0.75s linear infinite;
+  }
+
+  @keyframes otp-spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+(function () {
+  var form = document.getElementById("{{ form_id }}");
+  var loader = document.getElementById("otp-loader");
+  var btn = document.getElementById("{{ button_id }}");
+  if (!form || !loader) return;
+
+  form.addEventListener("submit", function () {
+    loader.classList.remove("d-none");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Sending OTP...";
+    }
+  });
+})();
+</script>
