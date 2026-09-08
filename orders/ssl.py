@@ -1,6 +1,7 @@
 import string
 import random
 
+from django.conf import settings as django_settings
 from sslcommerz_lib import SSLCOMMERZ
 
 from .models import PaymentGateWaySettings
@@ -26,14 +27,15 @@ def sslcommerz_payment_gateway(request, order_id, user_id, grand_total, order=No
     phone = getattr(order, 'phone', None) or '01700000000'
     address = getattr(order, 'address_line1', None) or 'N/A'
     city = getattr(order, 'city', None) or 'Dhaka'
+    base_url = django_settings.SITE_BASE_URL
 
     post_body = {
         'total_amount': grand_total,
         'currency': 'BDT',
         'tran_id': unique_transaction_id_generator(),
-        'success_url': 'http://127.0.0.1:8000/order/success/',
-        'fail_url': 'http://127.0.0.1:8000/order/place_order/',
-        'cancel_url': 'http://127.0.0.1:8000/',
+        'success_url': f'{base_url}/order/success/',
+        'fail_url': f'{base_url}/order/place_order/',
+        'cancel_url': f'{base_url}/',
         'emi_option': 0,
         'cus_name': f'{getattr(order, "first_name", "")} {getattr(order, "last_name", "")}'.strip() or request.user.username,
         'cus_email': email,
